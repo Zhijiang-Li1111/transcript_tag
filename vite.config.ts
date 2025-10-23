@@ -2,9 +2,12 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 
+const isGitHubPagesBuild = process.env.DEPLOY_TARGET === 'gh-pages'
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: isGitHubPagesBuild ? '/transcript_tag/' : '/',
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),

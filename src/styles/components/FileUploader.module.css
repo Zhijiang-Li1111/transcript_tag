@@ -1,0 +1,208 @@
+.fileUploader {
+  width: 100%;
+  max-width: 28rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dropZone {
+  border: 2px dashed #d1d5db;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+.dropZone:hover {
+  border-color: #60a5fa;
+  background-color: #eff6ff;
+}
+
+.dropZone.dragActive {
+  border-color: #3b82f6;
+  background-color: #dbeafe;
+}
+
+.dropZone.error {
+  border-color: #fca5a5;
+  background-color: #fef2f2;
+}
+
+.dropZone.success {
+  border-color: #86efac;
+  background-color: #f0fdf4;
+}
+
+.dropIcon {
+  margin: 0 auto 1rem auto;
+  width: 3rem;
+  height: 3rem;
+  color: #9ca3af;
+}
+
+.dropText {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.dropSubtext {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.browseButton {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  color: #2563eb;
+  background-color: #dbeafe;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.browseButton:hover {
+  background-color: #bfdbfe;
+}
+
+.browseButton:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.fileInfo {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.375rem;
+}
+
+.fileName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.fileSize {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.progressBar {
+  margin-top: 0.5rem;
+  width: 100%;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  height: 0.5rem;
+}
+
+.progressFill {
+  background-color: #2563eb;
+  height: 0.5rem;
+  border-radius: 9999px;
+  transition: width 0.3s ease-in-out;
+}
+
+.errorMessage {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+.successMessage {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #16a34a;
+}
+
+.validationList {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.validationItem {
+  font-size: 0.75rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+}
+
+.validationItem.error {
+  color: #ef4444;
+}
+
+.validationItem.warning {
+  color: #d97706;
+}
+
+.validationItem.success {
+  color: #22c55e;
+}
+
+.validationIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.25rem;
+}
+
+.removeButton {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid transparent;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  color: #dc2626;
+  background-color: #fee2e2;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.removeButton:hover {
+  background-color: #fecaca;
+}
+
+.removeButton:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #ef4444;
+}
+
+.loadingSpinner {
+  animation: spin 1s linear infinite;
+  border-radius: 9999px;
+  height: 1.25rem;
+  width: 1.25rem;
+  border: 2px solid transparent;
+  border-bottom-color: #2563eb;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

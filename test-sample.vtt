@@ -1,0 +1,17 @@
+WEBVTT
+this is test file 
+
+00:00:00.000 --> 00:00:03.000
+Welcome to this sample transcript for testing.
+
+00:00:03.500 --> 00:00:07.200
+This is the second cue with some longer text to demonstrate how the cue list handles different content lengths.
+
+00:00:08.000 --> 00:00:11.500
+Here's a third cue that talks about something important.
+
+00:00:12.000 --> 00:00:15.800
+And finally, this is the fourth cue to complete our test transcript.
+
+00:00:16.000 --> 00:00:19.000
+This is the final cue in our test file.

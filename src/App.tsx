@@ -110,6 +110,70 @@ function App() {
                   Upload a VTT (WebVTT) subtitle file to begin annotating transcript importance levels.
                 </p>
                 
+                {/* Usage Guide */}
+                <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6 text-left">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    How to use this tool
+                  </h2>
+                  <div className="space-y-4 text-gray-600">
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-2">📁 Upload Your File</h3>
+                      <ul className="space-y-1 text-sm">
+                        <li>• Drag and drop a VTT file into the area below, or click "Browse Files" to select one</li>
+                        <li>• Supports VTT (WebVTT) subtitle files and text files containing VTT content</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-2">⭐ Rate Importance</h3>
+                      <ul className="space-y-1 text-sm">
+                        <li>• Rate each transcript cue on a scale of 0-3:</li>
+                        <li className="ml-4 space-y-1">
+                          <div className="text-gray-700"><span className="font-medium text-gray-400">0 = Noise:</span> Irrelevant content (e.g., "um", "uh", side conversations)</div>
+                          <div className="text-gray-700"><span className="font-medium text-blue-500">1 = Optional:</span> Nice to have (e.g., background context, casual remarks)</div>
+                          <div className="text-gray-700"><span className="font-medium text-amber-600">2 = Important:</span> Key information (e.g., main discussion points, decisions)</div>
+                          <div className="text-gray-700"><span className="font-medium text-red-600">3 = Critical:</span> Must-have content (e.g., action items, key conclusions)</div>
+                        </li>
+                        <li>• Use quick buttons or keyboard shortcuts (0–3 keys)</li>
+                        <li>• Your progress saves automatically as you work</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-2">⏱️ Time & Export</h3>
+                      <ul className="space-y-1 text-sm">
+                        <li>• Expected duration: <span className="font-medium text-blue-600">5–10 minutes</span> depending on transcript length</li>
+                        <li>• After completing all ratings, you can <span className="font-medium text-green-600">export your results</span> as a ZIP file</li>
+                        <li>• Export includes annotations.json and the original VTT file for further analysis</li>
+                      </ul>
+                    </div>
+                    
+                    {/* Privacy Note */}
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="text-sm">
+                          <p className="font-medium text-green-800 mb-1">🔒 Privacy & Open Source</p>
+                          <p className="text-green-700">
+                            This tool runs entirely in your browser with no backend. Your transcript data never leaves your device. 
+                            Source code available at:{' '}
+                            <a 
+                              href="https://github.com/Zhijiang-Li1111/transcript_tag/tree/main" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="font-medium text-green-600 hover:text-green-500 underline"
+                            >
+                              github.com/Zhijiang-Li1111/transcript_tag
+                            </a>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
                 <FileUploader
                   onFileSelect={handleFileSelect}
                   onValidationComplete={handleValidationComplete}
@@ -192,20 +256,6 @@ function App() {
                           </p>
                         </div>
                       </div>
-                    </div>
-                    
-                    {/* Preview of parsed cues */}
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                        Transcript Preview
-                      </h3>
-                      <CueList
-                        cues={cues}
-                        currentIndex={0}
-                        showTiming={true}
-                        showImportance={false}
-                        maxHeight="300px"
-                      />
                     </div>
                   </div>
                 )}

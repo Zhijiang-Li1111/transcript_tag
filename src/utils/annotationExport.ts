@@ -127,7 +127,12 @@ function deriveOriginalFilename(originalFileName: string | undefined | null): st
 }
 
 function ensureVttExtension(filename: string): string {
-  if (filename.toLowerCase().endsWith('.vtt')) {
+  const lower = filename.toLowerCase();
+  if (lower.endsWith('.vtt') || lower.endsWith('.txt')) {
+    // Replace txt with vtt for export, keep vtt as is
+    if (lower.endsWith('.txt')) {
+      return filename.slice(0, -4) + '.vtt';
+    }
     return filename;
   }
   const sanitized = filename.replace(/\.[^/.]+$/, '');

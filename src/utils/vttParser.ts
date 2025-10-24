@@ -323,11 +323,12 @@ export function validateVTTFile(
     });
   }
 
-  // Check file type
-  if (!file.name.toLowerCase().endsWith('.vtt')) {
+  // Check file type - allow both .vtt and .txt
+  const fileName = file.name.toLowerCase();
+  if (!fileName.endsWith('.vtt') && !fileName.endsWith('.txt')) {
     errors.push({
       type: 'INVALID_FORMAT',
-      message: 'File must have .vtt extension',
+      message: 'File must have .vtt or .txt extension',
     });
   }
 

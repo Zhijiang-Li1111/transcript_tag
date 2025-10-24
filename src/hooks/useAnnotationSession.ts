@@ -251,28 +251,33 @@ export const useAnnotationSession = (options: UseAnnotationSessionOptions = {}) 
   const nextCue = useCallback(() => {
     if (!currentSession) return;
     
-    const nextIndex = Math.min(currentCueIndex + 1, currentSession.cues.length - 1);
-    setCurrentCueIndex(nextIndex);
-  }, [currentSession, currentCueIndex]);
+    setCurrentCueIndex((prevIndex) => {
+      return Math.min(prevIndex + 1, currentSession.cues.length - 1);
+    });
+  }, [currentSession]);
 
   // Navigate to previous cue
   const previousCue = useCallback(() => {
-    const prevIndex = Math.max(currentCueIndex - 1, 0);
-    setCurrentCueIndex(prevIndex);
-  }, [currentCueIndex]);
+    setCurrentCueIndex((prevIndex) => {
+      return Math.max(prevIndex - 1, 0);
+    });
+  }, []);
 
   // Find next unrated cue
   const nextUnratedCue = useCallback(() => {
     if (!currentSession) return;
 
-    const nextUnrated = currentSession.cues.findIndex(
-      (cue, index) => index > currentCueIndex && cue.importance === undefined
-    );
+    setCurrentCueIndex((prevIndex) => {
+      const nextUnrated = currentSession.cues.findIndex(
+        (cue, index) => index > prevIndex && cue.importance === undefined
+      );
 
-    if (nextUnrated >= 0) {
-      setCurrentCueIndex(nextUnrated);
-    }
-  }, [currentSession, currentCueIndex]);
+      if (nextUnrated >= 0) {
+        return nextUnrated;
+      }
+      return prevIndex;
+    });
+  }, [currentSession]);
 
   // Find previous unrated cue
   const previousUnratedCue = useCallback(() => {

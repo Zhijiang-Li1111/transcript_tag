@@ -3,14 +3,11 @@ import { MainLayout, Header } from './components/layout/MainLayout';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { FileUploader } from './components/upload/FileUploader';
 import { CueList } from './components/transcript/CueList';
-import { CueImportanceTagger } from './components/transcript/CueImportanceTagger';
-import { ImportanceLegend } from './components/transcript/ImportanceLegend';
 import { ExportControls } from './components/transcript/ExportControls';
 import { Button } from './components/ui/Button';
 import { useVTTParser } from './hooks/useVTTParser';
 import { useAnnotationSession } from './hooks/useAnnotationSession';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
-import { formatTimeMs } from './types/transcript';
 import type { FileValidationResult } from './utils/fileValidation';
 
 function App() {
@@ -23,7 +20,7 @@ function App() {
   const {
     currentSession,
     currentCueIndex,
-    currentCue,
+
     statistics,
     createSession,
     updateCueImportance,
@@ -32,7 +29,6 @@ function App() {
     goToCue,
     nextCue,
     previousCue,
-    nextUnratedCue,
     markExported,
     isSessionComplete,
     remainingCueCount,
@@ -40,16 +36,22 @@ function App() {
     missingMetadataFields,
   } = useAnnotationSession();
 
-  // Keyboard shortcuts
-  const { shortcuts } = useKeyboardShortcuts({
-    onRateImportance: (level) => {
+    // Keyboard shortcuts
+  // Stable keyboard callback for rating
+  const handleKeyboardRate = useCallback(
+    (level: 0 | 1 | 2 | 3) => {
       if (currentSession) {
         updateCueImportance(currentCueIndex, level);
       }
     },
+    [currentSession, currentCueIndex, updateCueImportance]
+  );
+
+  // These are now stable because nextCue/previousCue no longer depend on currentCueIndex
+  const { shortcuts } = useKeyboardShortcuts({
+    onRateImportance: handleKeyboardRate,
     onNextCue: nextCue,
     onPreviousCue: previousCue,
-    onNextUnrated: nextUnratedCue,
     enabled: !!currentSession, // Only enable when annotation session is active
   });
 
@@ -74,80 +76,20 @@ function App() {
     setValidationResult(result);
   }, []);
 
+  const handleRateCue = useCallback((level: 0 | 1 | 2 | 3) => {
+    if (!currentSession) return;
+    updateCueImportance(currentCueIndex, level);
+  }, [currentSession, currentCueIndex, updateCueImportance]);
+
+  const handleClearRating = useCallback(() => {
+    if (!currentSession) return;
+    clearCueImportance(currentCueIndex);
+  }, [clearCueImportance, currentCueIndex, currentSession]);
+
+
+
   return (
     <ErrorBoundary>
-      {currentSession && (
-        <div
-          className="hidden lg:flex flex-col space-y-4 fixed top-28 z-40 w-80 pointer-events-auto"
-          style={{
-            left: 'clamp(16px, calc((100vw - min(100vw, 72rem)) / 2 + ((min(100vw, 72rem) - 3rem) * 2 / 3) + 1.5rem), calc(100vw - 16px - 20rem))',
-          }}
-        >
-          <ImportanceLegend position="right" className="w-full" />
-          {currentCue && (
-            <CueImportanceTagger
-              cue={currentCue}
-              onImportanceChange={(importance) => updateCueImportance(currentCueIndex, importance)}
-              onClear={() => clearCueImportance(currentCueIndex)}
-            />
-          )}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="pt-3 border-t border-gray-200">
-              <h5 className="text-xs font-medium text-gray-700 mb-2">Keyboard Shortcuts</h5>
-              <div className="space-y-1 text-xs text-gray-600">
-                {shortcuts.map((shortcut, index) => (
-                  <div key={index} className="flex justify-between">
-                    <span className="font-mono bg-gray-100 px-1 rounded">{shortcut.key}</span>
-                    <span>{shortcut.description}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          {statistics && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <h4 className="font-medium text-gray-900 mb-3">Progress</h4>
-              <div className="space-y-3">
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Overall Progress</span>
-                    <span>{statistics.progressPercentage}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${statistics.progressPercentage}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className="text-sm space-y-1">
-                  <div className="flex justify-between">
-                    <span>Total Cues:</span>
-                    <span>{statistics.totalCues}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Rated:</span>
-                    <span>{statistics.ratedCues}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Remaining:</span>
-                    <span>{statistics.unratedCues}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          <ExportControls
-            session={currentSession}
-            remainingCueCount={remainingCueCount}
-            isSessionComplete={isSessionComplete}
-            metadataReady={metadataReady}
-            missingMetadataFields={missingMetadataFields}
-            markExported={markExported}
-          />
-        </div>
-      )}
       <MainLayout
         header={
           <Header
@@ -272,12 +214,12 @@ function App() {
           ) : (
             // Annotation Phase
             <div className="h-full flex flex-col">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-                {/* Main Content Area */}
-                <div className="lg:col-span-2 flex flex-col space-y-4 min-h-0">
-                  {/* Current Cue Display */}
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="lg:mr-[22rem] flex flex-col space-y-4 flex-1 min-h-0">
+                {/* Main Content Area with margin for floating sidebar */}
+                <div className="flex flex-col space-y-4 min-h-0">
+                  {/* Header with back button and progress */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
                         <Button
                           variant="ghost"
@@ -307,22 +249,10 @@ function App() {
                         ) : null}
                       </div>
                     </div>
-                    
-                    {currentCue && (
-                      <div className="space-y-4">
-                        <div className="text-sm text-gray-600 font-mono">
-                          {formatTimeMs(currentCue.startMs)} → {formatTimeMs(currentCue.endMs)}
-                        </div>
-                        <div className="text-lg leading-relaxed text-gray-800 bg-gray-50 p-4 rounded-lg">
-                          {currentCue.text}
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Cue List with full height */}
                   <div className="flex-1 min-h-0">
-                    <ImportanceLegend className="mb-4 lg:hidden" position="left" />
                     <CueList
                       cues={currentSession.cues}
                       currentIndex={currentCueIndex}
@@ -331,81 +261,125 @@ function App() {
                       showImportance={true}
                       fullHeight={true}
                       remainingCueCount={remainingCueCount}
+                      showInlineRating={true}
+                      onRateImportance={handleRateCue}
+                      onClearRating={handleClearRating}
                     />
                   </div>
                 </div>
 
-                {/* Sidebar */}
-                <div className="space-y-4 lg:ml-4">
-                  {/* Placeholder to reserve column width on lg */}
-                  <div className="hidden lg:block" aria-hidden="true" />
+                {/* Floating Sidebar */}
+                <div 
+                  className="hidden lg:flex flex-col space-y-4 fixed top-28 z-40 w-80 pointer-events-auto"
+                  style={{
+                    left: 'calc((100vw + min(100vw, 72rem)) / 2 - 20rem - 1.5rem)',
+                    right: 'auto',
+                  }}
+                >
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <div className="pt-3 border-t border-gray-200">
+                      <h5 className="text-xs font-medium text-gray-700 mb-2">Keyboard Shortcuts</h5>
+                      <div className="space-y-1 text-xs text-gray-600">
+                        {shortcuts.map((shortcut, index) => (
+                          <div key={index} className="flex justify-between">
+                            <span className="font-mono bg-gray-100 px-1 rounded">{shortcut.key}</span>
+                            <span>{shortcut.description}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
-                  {/* Mobile/Tablet stack */}
-                  <div className="space-y-4 lg:hidden">
-                    {currentCue && (
-                      <CueImportanceTagger
-                        cue={currentCue}
-                        onImportanceChange={(importance) => updateCueImportance(currentCueIndex, importance)}
-                        onClear={() => clearCueImportance(currentCueIndex)}
-                      />
-                    )}
+                  {statistics && (
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                      <div className="pt-3 border-t border-gray-200">
-                        <h5 className="text-xs font-medium text-gray-700 mb-2">Keyboard Shortcuts</h5>
-                        <div className="space-y-1 text-xs text-gray-600">
-                          {shortcuts.map((shortcut, index) => (
-                            <div key={index} className="flex justify-between">
-                              <span className="font-mono bg-gray-100 px-1 rounded">{shortcut.key}</span>
-                              <span>{shortcut.description}</span>
-                            </div>
-                          ))}
+                      <h4 className="font-medium text-gray-900 mb-3">Progress</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>Overall Progress</span>
+                            <span>{statistics.progressPercentage}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${statistics.progressPercentage}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="text-sm space-y-1">
+                          <div className="flex justify-between">
+                            <span>Total Cues:</span>
+                            <span>{statistics.totalCues}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Rated:</span>
+                            <span>{statistics.ratedCues}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Remaining:</span>
+                            <span>{statistics.unratedCues}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
+                  )}
 
-                    {statistics && (
-                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                        <h4 className="font-medium text-gray-900 mb-3">Progress</h4>
-                        <div className="space-y-3">
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Overall Progress</span>
-                              <span>{statistics.progressPercentage}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${statistics.progressPercentage}%` }}
-                              />
-                            </div>
+                  <ExportControls
+                    session={currentSession}
+                    remainingCueCount={remainingCueCount}
+                    isSessionComplete={isSessionComplete}
+                    metadataReady={metadataReady}
+                    missingMetadataFields={missingMetadataFields}
+                    markExported={markExported}
+                  />
+                </div>
+
+                {/* Mobile/Tablet Progress and Export */}
+                <div className="space-y-4 lg:hidden">
+                  {statistics && (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                      <h4 className="font-medium text-gray-900 mb-3">Progress</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>Overall Progress</span>
+                            <span>{statistics.progressPercentage}%</span>
                           </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${statistics.progressPercentage}%` }}
+                            />
+                          </div>
+                        </div>
 
-                          <div className="text-sm space-y-1">
-                            <div className="flex justify-between">
-                              <span>Total Cues:</span>
-                              <span>{statistics.totalCues}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Rated:</span>
-                              <span>{statistics.ratedCues}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Remaining:</span>
-                              <span>{statistics.unratedCues}</span>
-                            </div>
+                        <div className="text-sm space-y-1">
+                          <div className="flex justify-between">
+                            <span>Total Cues:</span>
+                            <span>{statistics.totalCues}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Rated:</span>
+                            <span>{statistics.ratedCues}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Remaining:</span>
+                            <span>{statistics.unratedCues}</span>
                           </div>
                         </div>
                       </div>
-                    )}
-                    <ExportControls
-                      session={currentSession}
-                      remainingCueCount={remainingCueCount}
-                      isSessionComplete={isSessionComplete}
-                      metadataReady={metadataReady}
-                      missingMetadataFields={missingMetadataFields}
-                      markExported={markExported}
-                    />
-                  </div>
+                    </div>
+                  )}
+                  
+                  <ExportControls
+                    session={currentSession}
+                    remainingCueCount={remainingCueCount}
+                    isSessionComplete={isSessionComplete}
+                    metadataReady={metadataReady}
+                    missingMetadataFields={missingMetadataFields}
+                    markExported={markExported}
+                  />
                 </div>
               </div>
             </div>

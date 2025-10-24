@@ -17,9 +17,9 @@ export interface FileValidationResult {
 // Supported file types
 export const SUPPORTED_FILE_TYPES = {
   VTT: {
-    extensions: ['.vtt'],
+    extensions: ['.vtt', '.txt'],
     mimeTypes: ['text/vtt', 'text/plain'],
-    description: 'WebVTT subtitle files',
+    description: 'WebVTT subtitle files or text files with VTT content',
   },
 } as const;
 
@@ -62,7 +62,7 @@ export function validateFile(
 
   // File extension validation
   const fileExtension = getFileExtension(file.name);
-  if (!SUPPORTED_FILE_TYPES.VTT.extensions.includes(fileExtension as '.vtt')) {
+  if (!SUPPORTED_FILE_TYPES.VTT.extensions.includes(fileExtension as '.vtt' | '.txt')) {
     errors.push({
       type: 'INVALID_FORMAT',
       message: `Unsupported file extension: ${fileExtension}. Expected: ${SUPPORTED_FILE_TYPES.VTT.extensions.join(', ')}`,

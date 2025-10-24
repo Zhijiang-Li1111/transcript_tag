@@ -15,7 +15,7 @@ interface FileUploaderProps {
 export const FileUploader: React.FC<FileUploaderProps> = ({
   onFileSelect,
   onValidationComplete,
-  acceptedFormats = ['.vtt'],
+  acceptedFormats = ['.vtt', '.txt'],
   disabled = false,
   className = '',
 }) => {
@@ -163,11 +163,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
           </div>
 
           <div className={styles.dropText}>
-            {dragActive ? 'Drop file here' : 'Upload VTT file'}
+            {dragActive ? 'Drop file here' : 'Upload VTT or TXT file'}
           </div>
           
           <p className={styles.dropSubtext}>
-            Drag & drop a VTT file, or click to browse
+            Drag & drop a VTT or TXT file (with VTT content), or click to browse
           </p>
 
           <Button

@@ -331,7 +331,7 @@ export function isFileAPISupported(): boolean {
 }
 
 /**
- * Get recommended file size limits based on browser capabilities
+ * Get recommended file limits based on device capabilities
  * @returns Object with recommended limits
  */
 export function getRecommendedFileLimits(): {
@@ -340,7 +340,10 @@ export function getRecommendedFileLimits(): {
   warningSize: number;
 } {
   // Detect available memory (rough estimate)
-  const nav = navigator as any;
+  interface NavigatorWithMemory extends Navigator {
+    deviceMemory?: number;
+  }
+  const nav = navigator as NavigatorWithMemory;
   const deviceMemory = nav.deviceMemory || 4; // Default to 4GB if not available
   
   return {

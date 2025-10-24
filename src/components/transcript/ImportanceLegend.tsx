@@ -1,5 +1,5 @@
 import React from 'react';
-import { IMPORTANCE_CONFIG } from '../../types/transcript';
+import { IMPORTANCE_CONFIG, COLOR_SCHEMES } from '../../types/transcript';
 
 interface ImportanceLegendProps {
   position?: 'left' | 'right';
@@ -37,34 +37,33 @@ export const ImportanceLegend: React.FC<ImportanceLegendProps> = ({
       </header>
 
       <div className="space-y-3">
-        {IMPORTANCE_CONFIG.map((config) => (
-          <div
-            key={config.level}
-            className="flex items-start space-x-3"
-          >
+        {IMPORTANCE_CONFIG.map((config) => {
+          const colorScheme = COLOR_SCHEMES[config.colorScheme];
+          return (
             <div
-              className={`
-                flex items-center justify-center w-9 h-9 rounded-full font-semibold text-white
-                shadow-sm
-                ${config.color === 'gray' ? 'bg-gray-500' : ''}
-                ${config.color === 'blue' ? 'bg-blue-500' : ''}
-                ${config.color === 'orange' ? 'bg-orange-500' : ''}
-                ${config.color === 'red' ? 'bg-red-500' : ''}
-              `}
-              aria-hidden
+              key={config.level}
+              className="flex items-start space-x-3"
             >
-              {config.level}
-            </div>
-            <div className="flex-1">
-              <div className="text-sm font-medium text-gray-900">
-                {config.label}
+              <div
+                className={`
+                  flex items-center justify-center w-9 h-9 rounded-full font-semibold text-white
+                  shadow-sm ${colorScheme.dot}
+                `}
+                aria-hidden
+              >
+                {config.level}
               </div>
-              <p className="text-xs text-gray-600 leading-snug">
-                {config.description}
-              </p>
+              <div className="flex-1">
+                <div className="text-sm font-medium text-gray-900">
+                  {config.label}
+                </div>
+                <p className="text-xs text-gray-600 leading-snug">
+                  {config.description}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </aside>
   );

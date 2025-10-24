@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { Button } from './Button';
+import { useErrorHandler } from '../../hooks/useErrorHandler';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -268,27 +269,6 @@ Component Stack: ${errorInfo?.componentStack}
       </div>
     </div>
   );
-};
-
-// Hook for using error boundary imperatively
-export const useErrorHandler = () => {
-  const [error, setError] = React.useState<Error | null>(null);
-
-  const resetError = React.useCallback(() => {
-    setError(null);
-  }, []);
-
-  const captureError = React.useCallback((error: Error) => {
-    setError(error);
-  }, []);
-
-  React.useEffect(() => {
-    if (error) {
-      throw error;
-    }
-  }, [error]);
-
-  return { captureError, resetError };
 };
 
 // Async error boundary for handling async errors

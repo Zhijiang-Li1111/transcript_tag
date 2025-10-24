@@ -276,7 +276,7 @@ export function cleanupExpiredSessions(): void {
           localStorage.removeItem(key);
         }
       }
-    } catch (error) {
+    } catch {
       // Remove corrupted session data
       localStorage.removeItem(key);
     }

@@ -68,7 +68,9 @@ export const useKeyboardShortcuts = ({
     if (isTyping) {
       if (event.key === 'Escape') {
         event.preventDefault();
-        (target as any)?.blur?.();
+        if ('blur' in target && typeof target.blur === 'function') {
+          target.blur();
+        }
       }
       return;
     }

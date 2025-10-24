@@ -1,5 +1,5 @@
 import type { TranscriptCue } from '../../types/transcript';
-import { IMPORTANCE_CONFIG } from '../../types/transcript';
+import { IMPORTANCE_CONFIG, COLOR_SCHEMES } from '../../types/transcript';
 
 interface CueImportanceTaggerProps {
 	cue: TranscriptCue;
@@ -8,40 +8,6 @@ interface CueImportanceTaggerProps {
 	disabled?: boolean;
 	className?: string;
 }
-
-type RatedStyle = {
-	status: string;
-	badge: string;
-	buttonActive: string;
-	buttonBase: string;
-};
-
-const RATED_STYLE_MAP: Record<number, RatedStyle> = {
-	0: {
-		status: 'bg-gray-50 border-l-gray-400 text-gray-700',
-		badge: 'bg-gray-100 text-gray-800 border border-gray-300',
-		buttonActive: 'bg-gray-600 text-white',
-		buttonBase: 'bg-gray-200 text-gray-600 hover:bg-gray-300',
-	},
-	1: {
-		status: 'bg-blue-50 border-l-blue-400 text-blue-700',
-		badge: 'bg-blue-100 text-blue-800 border border-blue-200',
-		buttonActive: 'bg-blue-600 text-white',
-		buttonBase: 'bg-blue-200 text-blue-700 hover:bg-blue-300',
-	},
-	2: {
-		status: 'bg-orange-50 border-l-orange-400 text-orange-700',
-		badge: 'bg-orange-100 text-orange-800 border border-orange-200',
-		buttonActive: 'bg-orange-600 text-white',
-		buttonBase: 'bg-orange-200 text-orange-700 hover:bg-orange-300',
-	},
-	3: {
-		status: 'bg-red-50 border-l-red-400 text-red-700',
-		badge: 'bg-red-100 text-red-800 border border-red-200',
-		buttonActive: 'bg-red-600 text-white',
-		buttonBase: 'bg-red-200 text-red-700 hover:bg-red-300',
-	},
-};
 
 export function CueImportanceTagger({
 	cue,
@@ -54,10 +20,11 @@ export function CueImportanceTagger({
 		? IMPORTANCE_CONFIG.find((config) => config.level === cue.importance)
 		: undefined;
 
-	const ratedStyles = cue.importance !== undefined ? RATED_STYLE_MAP[cue.importance] : undefined;
-
-	const statusClass = ratedStyles?.status ?? 'bg-yellow-50 border-l-yellow-400 text-yellow-800';
-	const badgeClass = ratedStyles?.badge ?? 'bg-yellow-100 text-yellow-700 border border-yellow-300 animate-pulse';
+	// Get color scheme for the current importance level or unrated state
+	const colorScheme = selectedConfig ? COLOR_SCHEMES[selectedConfig.colorScheme] : undefined;
+	
+	const statusClass = colorScheme?.status ?? 'bg-yellow-50 border-l-yellow-400 text-yellow-800';
+	const badgeClass = colorScheme?.badge ?? 'bg-yellow-100 text-yellow-700 border border-yellow-300 animate-pulse';
 
 	return (
 		<section className={`bg-white rounded-lg border border-gray-200 p-4 space-y-4 ${className}`}>
@@ -91,8 +58,8 @@ export function CueImportanceTagger({
 			<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
 				{IMPORTANCE_CONFIG.map((config) => {
 					const isSelected = cue.importance === config.level;
-					const style = RATED_STYLE_MAP[config.level];
-					const baseClasses = isSelected ? style.buttonActive : style.buttonBase;
+					const scheme = COLOR_SCHEMES[config.colorScheme];
+					const baseClasses = isSelected ? scheme.buttonActive : scheme.buttonBase;
 
 					return (
 						<button
@@ -151,9 +118,8 @@ export function CompactImportanceTagger({
 		? IMPORTANCE_CONFIG.find((config) => config.level === cue.importance)
 		: undefined;
 
-	const badgeClass = cue.importance !== undefined
-		? RATED_STYLE_MAP[cue.importance].badge
-		: 'bg-yellow-100 text-yellow-700 border border-yellow-300 animate-pulse';
+	const colorScheme = selectedConfig ? COLOR_SCHEMES[selectedConfig.colorScheme] : undefined;
+	const badgeClass = colorScheme?.badge ?? 'bg-yellow-100 text-yellow-700 border border-yellow-300 animate-pulse';
 
 	return (
 		<div className={`flex flex-wrap items-center gap-3 ${className}`}>
@@ -164,8 +130,8 @@ export function CompactImportanceTagger({
 			<div className="flex items-center gap-1">
 				{IMPORTANCE_CONFIG.map((config) => {
 					const isSelected = cue.importance === config.level;
-					const style = RATED_STYLE_MAP[config.level];
-					const baseClasses = isSelected ? style.buttonActive : style.buttonBase;
+					const scheme = COLOR_SCHEMES[config.colorScheme];
+					const baseClasses = isSelected ? scheme.buttonActive : scheme.buttonBase;
 
 					return (
 						<button

@@ -51,7 +51,7 @@ export interface ImportanceLevelConfig {
   level: number;
   label: string;
   description: string;
-  color: string;
+  colorScheme: 'gray' | 'blue' | 'orange' | 'red';
   shortcut: string;
 }
 
@@ -60,31 +60,74 @@ export const IMPORTANCE_CONFIG: ImportanceLevelConfig[] = [
     level: 0,
     label: 'Noise',
     description: 'Small talk, fillers, chit-chat, non-informative',
-    color: 'var(--color-noise)',
+    colorScheme: 'gray',
     shortcut: '0',
   },
   {
     level: 1,
     label: 'Optional',
     description: 'Minor background, explanations, low-value repetitions',
-    color: 'var(--color-optional)',
+    colorScheme: 'blue',
     shortcut: '1',
   },
   {
     level: 2,
     label: 'Important',
     description: 'Core comparisons, key evidence, plan actions, critical questions',
-    color: 'var(--color-important)',
+    colorScheme: 'orange',
     shortcut: '2',
   },
   {
     level: 3,
     label: 'Critical',
     description: 'Decisions / commitments / hard results / key risk confirmations',
-    color: 'var(--color-critical)',
+    colorScheme: 'red',
     shortcut: '3',
   },
 ];
+
+/**
+ * Color scheme mapping for importance levels
+ * Uses Tailwind CSS color palette for consistent styling
+ */
+export interface ColorScheme {
+  status: string;
+  badge: string;
+  buttonActive: string;
+  buttonBase: string;
+  dot: string;
+}
+
+export const COLOR_SCHEMES: Record<'gray' | 'blue' | 'orange' | 'red', ColorScheme> = {
+  gray: {
+    status: 'bg-gray-50 border-l-gray-400 text-gray-700',
+    badge: 'bg-gray-100 text-gray-800 border border-gray-300',
+    buttonActive: 'bg-gray-600 text-white',
+    buttonBase: 'bg-gray-200 text-gray-600 hover:bg-gray-300',
+    dot: 'bg-gray-500',
+  },
+  blue: {
+    status: 'bg-blue-50 border-l-blue-400 text-blue-700',
+    badge: 'bg-blue-100 text-blue-800 border border-blue-200',
+    buttonActive: 'bg-blue-600 text-white',
+    buttonBase: 'bg-blue-200 text-blue-700 hover:bg-blue-300',
+    dot: 'bg-blue-500',
+  },
+  orange: {
+    status: 'bg-orange-50 border-l-orange-400 text-orange-700',
+    badge: 'bg-orange-100 text-orange-800 border border-orange-200',
+    buttonActive: 'bg-orange-600 text-white',
+    buttonBase: 'bg-orange-200 text-orange-700 hover:bg-orange-300',
+    dot: 'bg-orange-500',
+  },
+  red: {
+    status: 'bg-red-50 border-l-red-400 text-red-700',
+    badge: 'bg-red-100 text-red-800 border border-red-200',
+    buttonActive: 'bg-red-600 text-white',
+    buttonBase: 'bg-red-200 text-red-700 hover:bg-red-300',
+    dot: 'bg-red-500',
+  },
+};
 
 // Utility function to get importance level config
 export function getImportanceConfig(level: number): ImportanceLevelConfig {

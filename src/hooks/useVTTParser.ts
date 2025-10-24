@@ -290,7 +290,7 @@ export function useVTTFileValidator() {
             message: 'File does not start with required WEBVTT header',
           });
         }
-      } catch (contentError) {
+      } catch {
         errors.push({
           type: 'CORRUPTED_FILE',
           message: 'Unable to read file content for validation',

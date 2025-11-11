@@ -2,6 +2,11 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { AnnotationSession } from '../types/annotation';
 import type { TranscriptCue } from '../types/transcript';
 import { generateSessionId, SessionState } from '../types/annotation';
+import {
+  parseAnnotationJson,
+  matchAnnotationsToCues,
+  applyAnnotationsToCues,
+} from '../utils/annotationImport';
 
 interface UseAnnotationSessionOptions {
   autoSave?: boolean;
@@ -292,6 +297,70 @@ export const useAnnotationSession = (options: UseAnnotationSessionOptions = {}) 
     }
   }, [currentSession, currentCueIndex]);
 
+  // Import annotations from JSON file
+  const importAnnotations = useCallback((jsonText: string): { success: boolean; message: string; issues?: Array<{ type: string; details: string }> } => {
+    if (!currentSession) {
+      return { success: false, message: 'No active session' };
+    }
+
+    // Parse JSON
+    const parsed = parseAnnotationJson(jsonText);
+    if ('error' in parsed) {
+      return { success: false, message: parsed.error };
+    }
+
+    // Check if overwrite needed
+    const hasExistingAnnotations = currentSession.cues.some(cue => cue.importance !== undefined);
+    if (hasExistingAnnotations) {
+      const confirmed = window.confirm(
+        'Some cues already have importance ratings. Importing will overwrite them. Continue?'
+      );
+      if (!confirmed) {
+        return { success: false, message: 'Import cancelled by user' };
+      }
+    }
+
+    // Match annotations to cues
+    const matchResult = matchAnnotationsToCues(parsed.annotations, currentSession.cues);
+    
+    if (matchResult.kind === 'error') {
+      return {
+        success: false,
+        message: `Import failed: ${matchResult.issues.length} issue(s) found`,
+        issues: matchResult.issues.map(issue => ({
+          type: issue.type,
+          details: issue.details,
+        })),
+      };
+    }
+
+    // Apply annotations (mutates cues)
+    const updatedCues = [...currentSession.cues];
+    applyAnnotationsToCues(parsed.annotations, updatedCues);
+
+    // Update session
+    setCurrentSession(prevSession => {
+      if (!prevSession) return null;
+
+      const summary = summarizeSessionCompletion({
+        ...prevSession,
+        cues: updatedCues,
+      });
+
+      return {
+        ...prevSession,
+        cues: updatedCues,
+        lastModified: new Date().toISOString(),
+        status: summary?.isSessionComplete ? SessionState.COMPLETE : SessionState.IN_PROGRESS,
+      };
+    });
+
+    return {
+      success: true,
+      message: `Successfully imported ${matchResult.appliedCount} annotation(s)${matchResult.partial ? ' (partial coverage)' : ''}`,
+    };
+  }, [currentSession]);
+
   // Clear entire session
   const clearSession = useCallback(() => {
     setCurrentSession(null);
@@ -355,6 +424,7 @@ export const useAnnotationSession = (options: UseAnnotationSessionOptions = {}) 
     previousUnratedCue,
     clearSession,
     markExported,
+    importAnnotations,
     
     // Computed
     hasNext: currentSession ? currentCueIndex < currentSession.cues.length - 1 : false,

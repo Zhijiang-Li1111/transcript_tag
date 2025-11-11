@@ -5,24 +5,24 @@
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Verify existing environment: run `npm run lint` and `npm test` to ensure green baseline
-- [ ] T002 Create new utility file `src/utils/annotationImport.ts` (empty scaffold with TODO comment)
-- [ ] T003 Add placeholder integration test file `tests/integration/annotationImport.test.tsx`
-- [ ] T004 [P] Add placeholder unit test file `tests/utils/annotationImport.test.ts`
-- [ ] T005 Document matcher tolerance constant decision in `src/utils/annotationImport.ts` header comment
+- [x] T001 Verify existing environment: run `npm run lint` and `npm test` to ensure green baseline
+- [x] T002 Create new utility file `src/utils/annotationImport.ts` (empty scaffold with TODO comment)
+- [x] T003 Add placeholder integration test file `tests/integration/annotationImport.test.tsx`
+- [x] T004 [P] Add placeholder unit test file `tests/utils/annotationImport.test.ts`
+- [x] T005 Document matcher tolerance constant decision in `src/utils/annotationImport.ts` header comment
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T006 Implement pure parser function `parseAnnotationJson(jsonText: string)` in `src/utils/annotationImport.ts`
-- [ ] T007 Implement validation helpers (importance range, structural checks) in `src/utils/annotationImport.ts`
-- [ ] T008 Implement time matching function `matchAnnotationsToCues(imported, cues, toleranceMs)` in `src/utils/annotationImport.ts`
-- [ ] T009 Add discriminated union result types inside `src/utils/annotationImport.ts` (do not export globally)
-- [ ] T010 [P] Add unit tests for parser (valid JSON, invalid structure) in `tests/utils/annotationImport.test.ts`
-- [ ] T011 [P] Add unit tests for matching (exact match, tolerance match, mismatch) in `tests/utils/annotationImport.test.ts`
-- [ ] T012 [P] Add unit tests for duplicates/overlaps error cases in `tests/utils/annotationImport.test.ts`
-- [ ] T013 Expose import function via `useAnnotationSession` (`src/hooks/useAnnotationSession.ts`) adding `importAnnotations(fileText: string)`
-- [ ] T014 Update progress calculation invocation after import in `useAnnotationSession.ts`
-- [ ] T015 Add overwrite confirmation logic stub in `useAnnotationSession.ts` (returns boolean to caller)
+- [x] T006 Implement pure parser function `parseAnnotationJson(jsonText: string)` in `src/utils/annotationImport.ts`
+- [x] T007 Implement validation helpers (importance range, structural checks) in `src/utils/annotationImport.ts`
+- [x] T008 Implement time matching function `matchAnnotationsToCues(imported, cues, toleranceMs)` in `src/utils/annotationImport.ts`
+- [x] T009 Add discriminated union result types inside `src/utils/annotationImport.ts` (do not export globally)
+- [x] T010 [P] Add unit tests for parser (valid JSON, invalid structure) in `tests/utils/annotationImport.test.ts`
+- [x] T011 [P] Add unit tests for matching (exact match, tolerance match, mismatch) in `tests/utils/annotationImport.test.ts`
+- [x] T012 [P] Add unit tests for duplicates/overlaps error cases in `tests/utils/annotationImport.test.ts`
+- [x] T013 Expose import function via `useAnnotationSession` (`src/hooks/useAnnotationSession.ts`) adding `importAnnotations(fileText: string)`
+- [x] T014 Update progress calculation invocation after import in `useAnnotationSession.ts`
+- [x] T015 Add overwrite confirmation logic stub in `useAnnotationSession.ts` (returns boolean to caller)
 
 ## Phase 3: User Story 1 - Import Annotation JSON & Validate (Priority: P1) 🎯 MVP
 
@@ -34,11 +34,11 @@
 - [ ] T017 [P] [US1] Integration test: mismatch triggers modal and no annotations applied in `tests/integration/annotationImport.test.tsx`
 
 ### Implementation
-- [ ] T018 [US1] Extend Upload page UI in `src/components/upload/FileUploader.tsx` to include annotation JSON input control
-- [ ] T019 [US1] Wire JSON file selection -> read text -> call `importAnnotations` in `FileUploader.tsx`
-- [ ] T020 [US1] Implement atomic success feedback (inline message) in `FileUploader.tsx`
-- [ ] T021 [US1] Disable annotation JSON control until VTT loaded (guard) in `FileUploader.tsx`
-- [ ] T022 [US1] Implement overwrite confirmation (simple confirm dialog) in `FileUploader.tsx`
+- [x] T018 [US1] Extend Upload page UI in `src/components/upload/FileUploader.tsx` to include annotation JSON input control
+- [x] T019 [US1] Wire JSON file selection -> read text -> call `importAnnotations` in `FileUploader.tsx`
+- [x] T020 [US1] Implement atomic success feedback (inline message) in `FileUploader.tsx`
+- [x] T021 [US1] Disable annotation JSON control until VTT loaded (guard) in `FileUploader.tsx`
+- [x] T022 [US1] Implement overwrite confirmation (simple confirm dialog) in `FileUploader.tsx`
 
 ## Phase 4: User Story 2 - Error Handling & Accessibility Modal (Priority: P2)
 
@@ -71,12 +71,12 @@
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T034 [P] Refactor any duplicated utility code discovered during tests (ensure DRY)
-- [ ] T035 Add performance measurement snippet (Date.now timing) logged in dev mode in `annotationImport.ts`
-- [ ] T036 [P] Review Tailwind classes for consistency; remove unused styles
+- [x] T034 [P] Refactor any duplicated utility code discovered during tests (ensure DRY)
+- [x] T035 Add performance measurement snippet (Date.now timing) logged in dev mode in `annotationImport.ts`
+- [x] T036 [P] Review Tailwind classes for consistency; remove unused styles
 - [ ] T037 Accessibility audit: run axe on Upload page after import flows (manual script)
-- [ ] T038 Update `quickstart.md` with final overwrite + modal examples
-- [ ] T039 Final lint/build verification and remove TODO comments in `annotationImport.ts`
+- [x] T038 Update `quickstart.md` with final overwrite + modal examples
+- [x] T039 Final lint/build verification and remove TODO comments in `annotationImport.ts`
 
 ## Dependencies & Execution Order
 

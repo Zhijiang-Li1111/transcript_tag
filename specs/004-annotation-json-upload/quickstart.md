@@ -22,38 +22,43 @@ Guide developers/testers to validate JSON import of annotations quickly without 
 ## Steps: Successful Import
 1. Open Upload page.
 2. Upload transcript VTT.
-3. Use annotation JSON upload control to select sample file above.
-4. Observe success message and importance levels reflected in corresponding cues.
-5. Navigate to annotation page; confirm progress indicator matches count.
+3. Click "Upload Annotation JSON" button in the gray box below the VTT uploader.
+4. Select sample JSON file from above.
+5. Observe success message (green box) showing annotation count applied.
+6. Click "Start Annotating Now" button.
+7. Navigate to annotation page; confirm cues have importance levels loaded and progress indicator matches count.
 
 ## Steps: Error Import (Unmatched)
-1. Modify JSON startMs/endMs to values outside tolerance.
+1. Modify JSON startMs/endMs to values outside tolerance (e.g., add 100ms to each).
 2. Re-upload JSON.
-3. Expect error modal with summary; verify no cues annotated.
-4. Close modal via keyboard (Esc) and retry with valid file.
+3. Expect error message (red box) with issue summary; verify no cues annotated.
+4. Correct JSON and retry with valid file.
+
+## Steps: Overwrite Confirmation
+1. Upload valid transcript and JSON.
+2. After import success, click "Start Annotating Now" and manually annotate one cue.
+3. Return to upload page (click "Back to Upload" if needed, or refresh and re-upload VTT).
+4. Attempt to re-upload same JSON.
+5. Confirm browser confirm() dialog appears asking about overwrite.
+6. Click "Cancel" → verify no change to annotations.
+7. Retry import and click "OK" → verify importance values replaced.
 
 ## Accessibility Checks
-- Tab to JSON upload control; Enter opens file dialog.
-- After success, live region announces summary.
-- Error modal traps focus; Shift+Tab cycles within; Esc closes.
-
-## Overwrite Flow
-1. Annotate one cue manually.
-2. Upload valid JSON.
-3. Confirm overwrite dialog appears; cancel keeps existing manual annotation.
-4. Retry overwrite and confirm import replaces importance values.
+- Tab to "Upload Annotation JSON" button; Enter/Space opens file dialog.
+- After success, screen reader should announce success message (ARIA live region implicit via React).
+- Error messages displayed inline with semantic colors (red for errors, green for success).
 
 ## Verification Commands (Optional)
 ```bash
-npm test -- src/tests/integration/annotationImport.test.tsx
 npm run lint
 npm run build
 ```
 
 ## Troubleshooting
-- If import silently fails: check console for structural JSON errors.
-- If performance slow: profile matcher function and consider chunking.
-- If overwrite dialog missing: ensure manual annotation set `importance` before import.
+- If import silently fails: check browser console for structural JSON errors.
+- If performance slow (>2s for 2000 annotations): check dev console for performance warning logged.
+- If overwrite dialog missing: ensure VTT re-upload creates session first, then import again.
+- If annotations don't persist: localStorage might be disabled; check browser settings.
 
 ## Next
-After validating, proceed to implement tests and matcher utility optimizations if needed.
+After validating, feature is complete for MVP scope. Optional: add US2 modal component for more sophisticated error display or US3 for enhanced progress UI.

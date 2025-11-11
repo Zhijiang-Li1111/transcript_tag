@@ -9,18 +9,18 @@ import { useVTTParser } from './hooks/useVTTParser';
 import { useAnnotationSession } from './hooks/useAnnotationSession';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import type { FileValidationResult } from './utils/fileValidation';
+import type { TranscriptCue } from './types/transcript';
 
 function App() {
   const [validationResult, setValidationResult] = useState<FileValidationResult | null>(null);
   
   // VTT Parser hook
-  const { isLoading, error, cues, parseFile, clearError, fileName, rawContent } = useVTTParser();
+  const { isLoading, error, cues, parseFile, clearError, fileName, rawContent, parseResult } = useVTTParser();
   
   // Annotation Session hook
   const {
     currentSession,
     currentCueIndex,
-
     statistics,
     createSession,
     updateCueImportance,
@@ -30,11 +30,55 @@ function App() {
     nextCue,
     previousCue,
     markExported,
+    importAnnotations,
     isSessionComplete,
     remainingCueCount,
     metadataReady,
     missingMetadataFields,
   } = useAnnotationSession();
+
+  // State for annotation JSON import
+  const [importFeedback, setImportFeedback] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+    issues?: Array<{ type: string; details: string }>;
+  }>({ type: null, message: '', issues: [] });
+  
+  // Store updated cues from annotation import (used when session is created later)
+  const [importedCues, setImportedCues] = useState<TranscriptCue[] | null>(null);
+
+  // Handle annotation JSON import
+  const handleAnnotationImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const jsonText = e.target?.result as string;
+      if (!jsonText) return;
+
+      // Pass current cues to importAnnotations
+      const result = importAnnotations(jsonText, cues);
+      setImportFeedback({
+        type: result.success ? 'success' : 'error',
+        message: result.message,
+        issues: result.issues,
+      });
+
+      // Store updated cues for later session creation
+      if (result.success && result.updatedCues) {
+        setImportedCues(result.updatedCues);
+      }
+
+      // Clear feedback after a few seconds for success
+      if (result.success) {
+        setTimeout(() => {
+          setImportFeedback({ type: null, message: '', issues: [] });
+        }, 5000);
+      }
+    };
+    reader.readAsText(file);
+  }, [importAnnotations, cues]);
 
     // Keyboard shortcuts
   // Stable keyboard callback for rating
@@ -63,6 +107,9 @@ function App() {
   const handleFileSelect = useCallback(async (file: File) => {
     try {
       clearError();
+      // Clear imported cues when uploading a new VTT file
+      setImportedCues(null);
+      setImportFeedback({ type: null, message: '', issues: [] });
       await parseFile(file);
     } catch (error) {
       console.error('Failed to parse file:', error);
@@ -179,6 +226,55 @@ function App() {
                   onValidationComplete={handleValidationComplete}
                   disabled={isLoading}
                 />
+
+                {/* Annotation JSON Import (only show after transcript loaded) */}
+                {cues.length > 0 && !currentSession && (
+                  <div className="mt-6 p-6 bg-gray-50 border border-gray-200 rounded-lg">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                      Import Existing Annotations (Optional)
+                    </h3>
+                    <p className="text-xs text-gray-600 mb-4">
+                      If you have a previously exported annotation JSON file, upload it to resume your work.
+                    </p>
+                    <div className="flex items-center gap-4">
+                      <label className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        Upload Annotation JSON
+                        <input
+                          type="file"
+                          accept=".json"
+                          onChange={handleAnnotationImport}
+                          className="sr-only"
+                          aria-label="Upload annotation JSON file"
+                        />
+                      </label>
+                    </div>
+                    
+                    {/* Import feedback */}
+                    {importFeedback.type === 'success' && (
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                        <p className="text-sm text-green-800">{importFeedback.message}</p>
+                      </div>
+                    )}
+                    {importFeedback.type === 'error' && (
+                      <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                        <p className="text-sm font-medium text-red-800">{importFeedback.message}</p>
+                        {importFeedback.issues && importFeedback.issues.length > 0 && (
+                          <ul className="mt-2 text-xs text-red-700 space-y-1">
+                            {importFeedback.issues.slice(0, 10).map((issue, idx) => (
+                              <li key={idx}>• {issue.details}</li>
+                            ))}
+                            {importFeedback.issues.length > 10 && (
+                              <li className="italic">... and {importFeedback.issues.length - 10} more issue(s)</li>
+                            )}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 {/* Show parsing progress */}
                 {isLoading && (
@@ -198,10 +294,22 @@ function App() {
                   </div>
                 )}
                 
-                {/* Show validation warnings */}
+                {/* Show VTT parsing warnings */}
+                {parseResult && parseResult.warnings && parseResult.warnings.length > 0 && (
+                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h4 className="text-sm font-medium text-yellow-800">VTT Format Warnings</h4>
+                    <ul className="text-sm text-yellow-600 mt-1 space-y-1">
+                      {parseResult.warnings.map((warning, index) => (
+                        <li key={index}>• {warning}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Show file validation warnings */}
                 {validationResult && validationResult.warnings.length > 0 && (
                   <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="text-sm font-medium text-yellow-800">Warnings</h4>
+                    <h4 className="text-sm font-medium text-yellow-800">File Validation Warnings</h4>
                     <ul className="text-sm text-yellow-600 mt-1 space-y-1">
                       {validationResult.warnings.map((warning, index) => (
                         <li key={index}>• {warning}</li>
@@ -242,7 +350,7 @@ function App() {
                           <Button
                             size="lg"
                             className="px-6 py-3 text-base shadow-md hover:shadow-lg"
-                            onClick={() => createSession(cues, fileName || 'uploaded.vtt', rawContent || undefined)}
+                            onClick={() => createSession(importedCues || cues, fileName || 'uploaded.vtt', rawContent || undefined)}
                             rightIcon={(
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />

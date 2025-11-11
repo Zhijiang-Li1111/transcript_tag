@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2025-10-24
 
 ## Active Technologies
+- TypeScript 5.9 + React 19 (Vite 7) (existing stack; no new deps per user request) + Existing React components (`MainLayout`, `FileUploader`, `Button`, transcript components), hooks (`useAnnotationSession`, `useVTTParser`), utilities (`vttParser`, `annotationExport`). (004-annotation-json-upload)
+- Browser `localStorage` via existing session key (`getStorageKey(sessionId)`); fallback to in-memory state if localStorage unavailable (handled inside session hook adjustments). (004-annotation-json-upload)
 
 - TypeScript 5.9 + React 19 (Vite 7) + React DOM 19, Tailwind CSS 3.4, existing UI components (`Button`, `MainLayout`), existing hooks (`useAnnotationSession`) (003-enhance-upload-page)
 
@@ -23,6 +25,7 @@ npm test && npm run lint
 TypeScript 5.9 + React 19 (Vite 7): Follow standard conventions
 
 ## Recent Changes
+- 004-annotation-json-upload: Added TypeScript 5.9 + React 19 (Vite 7) (existing stack; no new deps per user request) + Existing React components (`MainLayout`, `FileUploader`, `Button`, transcript components), hooks (`useAnnotationSession`, `useVTTParser`), utilities (`vttParser`, `annotationExport`).
 
 - 003-enhance-upload-page: Added TypeScript 5.9 + React 19 (Vite 7) + React DOM 19, Tailwind CSS 3.4, existing UI components (`Button`, `MainLayout`), existing hooks (`useAnnotationSession`)
 

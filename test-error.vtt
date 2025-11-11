@@ -1,0 +1,13 @@
+WEBVTT
+Invalid file for testing error handling
+
+00:00:01.000 --> 00:00:00.500
+This cue has invalid timing (start > end)
+
+00:00:02.000 --> 00:00:03.000
+Valid cue
+
+00:00:05.000 -->
+Missing end timestamp
+
+00:00:10.000 --> 00:00:12.000

@@ -222,7 +222,7 @@ export function createAnnotationFromCue(
     startMs: cue.startMs,
     endMs: cue.endMs,
     importance,
-    notes: generateImportanceNotes(importance),
+    notes: cue.text || generateImportanceNotes(importance), // Use cue text as notes, fallback to importance description
     timestamp: new Date().toISOString(),
   };
 }

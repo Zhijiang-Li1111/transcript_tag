@@ -64,11 +64,18 @@ export function parseAnnotationJson(jsonText: string): ImportedAnnotationFile | 
       return { error: 'Invalid or missing version field (must be number >= 1)' };
     }
 
-    if (!Array.isArray(parsed.annotations)) {
-      return { error: 'Missing or invalid annotations array' };
+    // Support both 'annotations' and 'importanceAnnotations' fields
+    const annotations = parsed.annotations || parsed.importanceAnnotations;
+    
+    if (!Array.isArray(annotations)) {
+      return { error: 'Missing or invalid annotations array (expected "annotations" or "importanceAnnotations" field)' };
     }
 
-    return parsed as ImportedAnnotationFile;
+    // Normalize to standard format
+    return {
+      ...parsed,
+      annotations,
+    } as ImportedAnnotationFile;
   } catch (err) {
     return { error: `JSON parse error: ${err instanceof Error ? err.message : String(err)}` };
   }
@@ -193,11 +200,25 @@ export function matchAnnotationsToCues(
         details: `No matching cue found for time range ${ann.startMs}-${ann.endMs}ms`,
       });
     } else if (matchingCueIndices.length > 1) {
-      issues.push({
-        type: 'OVERLAP',
-        annotationIndex: i,
-        details: `Ambiguous match: annotation ${ann.startMs}-${ann.endMs}ms matches ${matchingCueIndices.length} cues`,
-      });
+      // Multiple matches: use endMs as tie-breaker to find best match
+      let bestMatchIndex = matchingCueIndices[0];
+      let bestEndMsDiff = Math.abs(cues[bestMatchIndex].endMs - ann.endMs);
+      
+      for (let k = 1; k < matchingCueIndices.length; k++) {
+        const cueIndex = matchingCueIndices[k];
+        const endMsDiff = Math.abs(cues[cueIndex].endMs - ann.endMs);
+        if (endMsDiff < bestEndMsDiff) {
+          bestEndMsDiff = endMsDiff;
+          bestMatchIndex = cueIndex;
+        }
+      }
+      
+      // Use the best match (closest endMs)
+      matches.push({ cueIndex: bestMatchIndex, importance: ann.importance });
+      
+      if (import.meta.env.DEV) {
+        console.log(`[annotationImport] Resolved ambiguous match for ${ann.startMs}-${ann.endMs}ms: chose cue ${bestMatchIndex} with endMs diff ${bestEndMsDiff}ms`);
+      }
     } else {
       matches.push({ cueIndex: matchingCueIndices[0], importance: ann.importance });
     }
@@ -228,11 +249,24 @@ export function applyAnnotationsToCues(
   const startTime = Date.now();
   
   for (const ann of imported) {
-    for (const cue of cues) {
+    // Find all matching cues
+    const matchingCues: Array<{ index: number; endMsDiff: number }> = [];
+    
+    for (let j = 0; j < cues.length; j++) {
+      const cue = cues[j];
       if (timeRangesMatch(ann.startMs, ann.endMs, cue.startMs, cue.endMs, toleranceMs)) {
-        cue.importance = ann.importance;
-        break; // Already validated unique match
+        matchingCues.push({
+          index: j,
+          endMsDiff: Math.abs(cue.endMs - ann.endMs),
+        });
       }
+    }
+    
+    // If multiple matches, use the one with closest endMs (tie-breaker)
+    if (matchingCues.length > 0) {
+      matchingCues.sort((a, b) => a.endMsDiff - b.endMsDiff);
+      const bestMatch = matchingCues[0];
+      cues[bestMatch.index].importance = ann.importance;
     }
   }
   

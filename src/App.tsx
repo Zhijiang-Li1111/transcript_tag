@@ -9,12 +9,13 @@ import { useVTTParser } from './hooks/useVTTParser';
 import { useAnnotationSession } from './hooks/useAnnotationSession';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import type { FileValidationResult } from './utils/fileValidation';
+import type { TranscriptCue } from './types/transcript';
 
 function App() {
   const [validationResult, setValidationResult] = useState<FileValidationResult | null>(null);
   
   // VTT Parser hook
-  const { isLoading, error, cues, parseFile, clearError, fileName, rawContent } = useVTTParser();
+  const { isLoading, error, cues, parseFile, clearError, fileName, rawContent, parseResult } = useVTTParser();
   
   // Annotation Session hook
   const {
@@ -42,6 +43,9 @@ function App() {
     message: string;
     issues?: Array<{ type: string; details: string }>;
   }>({ type: null, message: '', issues: [] });
+  
+  // Store updated cues from annotation import (used when session is created later)
+  const [importedCues, setImportedCues] = useState<TranscriptCue[] | null>(null);
 
   // Handle annotation JSON import
   const handleAnnotationImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,12 +57,18 @@ function App() {
       const jsonText = e.target?.result as string;
       if (!jsonText) return;
 
-      const result = importAnnotations(jsonText);
+      // Pass current cues to importAnnotations
+      const result = importAnnotations(jsonText, cues);
       setImportFeedback({
         type: result.success ? 'success' : 'error',
         message: result.message,
         issues: result.issues,
       });
+
+      // Store updated cues for later session creation
+      if (result.success && result.updatedCues) {
+        setImportedCues(result.updatedCues);
+      }
 
       // Clear feedback after a few seconds for success
       if (result.success) {
@@ -68,7 +78,7 @@ function App() {
       }
     };
     reader.readAsText(file);
-  }, [importAnnotations]);
+  }, [importAnnotations, cues]);
 
     // Keyboard shortcuts
   // Stable keyboard callback for rating
@@ -97,6 +107,9 @@ function App() {
   const handleFileSelect = useCallback(async (file: File) => {
     try {
       clearError();
+      // Clear imported cues when uploading a new VTT file
+      setImportedCues(null);
+      setImportFeedback({ type: null, message: '', issues: [] });
       await parseFile(file);
     } catch (error) {
       console.error('Failed to parse file:', error);
@@ -281,10 +294,22 @@ function App() {
                   </div>
                 )}
                 
-                {/* Show validation warnings */}
+                {/* Show VTT parsing warnings */}
+                {parseResult && parseResult.warnings && parseResult.warnings.length > 0 && (
+                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h4 className="text-sm font-medium text-yellow-800">VTT Format Warnings</h4>
+                    <ul className="text-sm text-yellow-600 mt-1 space-y-1">
+                      {parseResult.warnings.map((warning, index) => (
+                        <li key={index}>• {warning}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Show file validation warnings */}
                 {validationResult && validationResult.warnings.length > 0 && (
                   <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="text-sm font-medium text-yellow-800">Warnings</h4>
+                    <h4 className="text-sm font-medium text-yellow-800">File Validation Warnings</h4>
                     <ul className="text-sm text-yellow-600 mt-1 space-y-1">
                       {validationResult.warnings.map((warning, index) => (
                         <li key={index}>• {warning}</li>
@@ -325,7 +350,7 @@ function App() {
                           <Button
                             size="lg"
                             className="px-6 py-3 text-base shadow-md hover:shadow-lg"
-                            onClick={() => createSession(cues, fileName || 'uploaded.vtt', rawContent || undefined)}
+                            onClick={() => createSession(importedCues || cues, fileName || 'uploaded.vtt', rawContent || undefined)}
                             rightIcon={(
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />

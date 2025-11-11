@@ -298,9 +298,15 @@ export const useAnnotationSession = (options: UseAnnotationSessionOptions = {}) 
   }, [currentSession, currentCueIndex]);
 
   // Import annotations from JSON file
-  const importAnnotations = useCallback((jsonText: string): { success: boolean; message: string; issues?: Array<{ type: string; details: string }> } => {
-    if (!currentSession) {
-      return { success: false, message: 'No active session' };
+  const importAnnotations = useCallback((jsonText: string, targetCues?: TranscriptCue[]): { success: boolean; message: string; issues?: Array<{ type: string; details: string }>; updatedCues?: TranscriptCue[] } => {
+    // Use provided cues or current session cues
+    const cues = targetCues || currentSession?.cues;
+    
+    if (!cues || cues.length === 0) {
+      return {
+        success: false,
+        message: 'No transcript cues available. Please upload a VTT file first.',
+      };
     }
 
     // Parse JSON
@@ -310,7 +316,7 @@ export const useAnnotationSession = (options: UseAnnotationSessionOptions = {}) 
     }
 
     // Check if overwrite needed
-    const hasExistingAnnotations = currentSession.cues.some(cue => cue.importance !== undefined);
+    const hasExistingAnnotations = cues.some(cue => cue.importance !== undefined);
     if (hasExistingAnnotations) {
       const confirmed = window.confirm(
         'Some cues already have importance ratings. Importing will overwrite them. Continue?'
@@ -321,7 +327,7 @@ export const useAnnotationSession = (options: UseAnnotationSessionOptions = {}) 
     }
 
     // Match annotations to cues
-    const matchResult = matchAnnotationsToCues(parsed.annotations, currentSession.cues);
+    const matchResult = matchAnnotationsToCues(parsed.annotations, cues);
     
     if (matchResult.kind === 'error') {
       return {
@@ -335,29 +341,32 @@ export const useAnnotationSession = (options: UseAnnotationSessionOptions = {}) 
     }
 
     // Apply annotations (mutates cues)
-    const updatedCues = [...currentSession.cues];
+    const updatedCues = [...cues];
     applyAnnotationsToCues(parsed.annotations, updatedCues);
 
-    // Update session
-    setCurrentSession(prevSession => {
-      if (!prevSession) return null;
+    // Update session if it exists
+    if (currentSession) {
+      setCurrentSession(prevSession => {
+        if (!prevSession) return null;
 
-      const summary = summarizeSessionCompletion({
-        ...prevSession,
-        cues: updatedCues,
+        const summary = summarizeSessionCompletion({
+          ...prevSession,
+          cues: updatedCues,
+        });
+
+        return {
+          ...prevSession,
+          cues: updatedCues,
+          lastModified: new Date().toISOString(),
+          status: summary?.isSessionComplete ? SessionState.COMPLETE : SessionState.IN_PROGRESS,
+        };
       });
-
-      return {
-        ...prevSession,
-        cues: updatedCues,
-        lastModified: new Date().toISOString(),
-        status: summary?.isSessionComplete ? SessionState.COMPLETE : SessionState.IN_PROGRESS,
-      };
-    });
+    }
 
     return {
       success: true,
       message: `Successfully imported ${matchResult.appliedCount} annotation(s)${matchResult.partial ? ' (partial coverage)' : ''}`,
+      updatedCues, // Return updated cues for App.tsx to use
     };
   }, [currentSession]);
 

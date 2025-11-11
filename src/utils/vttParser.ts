@@ -82,7 +82,19 @@ export async function parseVTTFile(
 
           // Collect cue text (lines after timing until empty line or next cue)
           const textLines: string[] = [];
+          const timingLineNumber = currentLine + 1; // Store for error reporting (1-indexed)
           currentLine++;
+          
+          // Skip one empty line if present (some VTT files have empty line after timing)
+          let skippedEmptyLine = false;
+          if (currentLine < lines.length && lines[currentLine] === '') {
+            console.log(`[VTT Parser] Skipping empty line after timing at line ${currentLine + 1}: "${startTime} --> ${endTime}"`);
+            warnings.push(
+              `Non-standard format: Empty line found after timing at line ${currentLine + 1} (${startTime} --> ${endTime}). Text content should immediately follow the timing line.`
+            );
+            currentLine++;
+            skippedEmptyLine = true;
+          }
 
           while (currentLine < lines.length && lines[currentLine] !== '') {
             // Skip if this line looks like a timing line (start of next cue)
@@ -93,13 +105,18 @@ export async function parseVTTFile(
             currentLine++;
           }
 
+          console.log(`[VTT Parser] Collected ${textLines.length} text lines for cue at ${startTime}. Skipped empty: ${skippedEmptyLine}`);
+
           // Clean up cue text (remove HTML tags and normalize)
           const { speaker, textLines: contentLines } = extractSpeakerFromTextLines(textLines);
           const rawText = contentLines.join(' ');
           const cleanText = cleanVTTText(rawText);
 
           if (cleanText.length === 0) {
-            warnings.push(`Empty cue text at line ${currentLine - textLines.length + 1}`);
+            const warningMsg = skippedEmptyLine 
+              ? `Cue SKIPPED at line ${timingLineNumber}: Empty line after timing (${startTime} --> ${endTime}), but no text content found. This cue will be missing from the transcript.`
+              : `Cue SKIPPED at line ${timingLineNumber}: No text content found (${startTime} --> ${endTime}). This cue will be missing from the transcript.`;
+            warnings.push(warningMsg);
             continue;
           }
 

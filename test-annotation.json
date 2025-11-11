@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "meetingId": "test-meeting-001",
+  "annotator": "test-user",
+  "annotations": [
+    {
+      "startMs": 0,
+      "endMs": 3000,
+      "importance": 1,
+      "notes": "Welcome message"
+    },
+    {
+      "startMs": 3500,
+      "endMs": 7200,
+      "importance": 2,
+      "notes": "Second cue"
+    },
+    {
+      "startMs": 8000,
+      "endMs": 11500,
+      "importance": 3,
+      "notes": "Important content"
+    }
+  ]
+}

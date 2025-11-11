@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "annotations": [
+    {
+      "startMs": 0,
+      "endMs": 3000,
+      "importance": 1
+    }
+  ]
+}

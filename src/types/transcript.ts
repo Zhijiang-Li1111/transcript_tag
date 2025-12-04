@@ -35,7 +35,7 @@ export const VTT_VALIDATION_CONFIG: VTTValidationRules = {
   requiredHeader: 'WEBVTT',
   minCues: 1,
   maxCues: 10_000,
-  maxCueLength: 5_000, // characters
+  maxCueLength: 20_000, // characters (increased from 5,000 to support long transcript cues)
 };
 
 export const ImportanceLevel = {

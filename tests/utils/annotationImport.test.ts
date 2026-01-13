@@ -21,6 +21,21 @@ test('parseAnnotationJson: valid structure', () => {
   assert.strictEqual(result.annotations.length, 1);
 });
 
+test('parseAnnotationJson: accepts string version (semver)', () => {
+  const json = JSON.stringify({
+    version: '2.0.0',
+    annotations: [
+      { startMs: 0, endMs: 1000, importance: 2 },
+    ],
+  });
+  const result = parseAnnotationJson(json);
+  assert.ok(!('error' in result));
+  if (!('error' in result)) {
+    assert.strictEqual(result.version, '2.0.0');
+    assert.strictEqual(result.annotations.length, 1);
+  }
+});
+
 test('parseAnnotationJson: missing version', () => {
   const json = JSON.stringify({ annotations: [] });
   const result = parseAnnotationJson(json);

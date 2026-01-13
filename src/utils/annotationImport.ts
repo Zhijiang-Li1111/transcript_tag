@@ -25,7 +25,7 @@ interface ImportedAnnotation {
 }
 
 interface ImportedAnnotationFile {
-  version: number;
+  version: number | string;
   meetingId?: string;
   annotator?: string;
   annotations: ImportedAnnotation[];
@@ -60,8 +60,28 @@ export function parseAnnotationJson(jsonText: string): ImportedAnnotationFile | 
       return { error: 'Invalid JSON structure: root must be an object' };
     }
 
-    if (typeof parsed.version !== 'number' || parsed.version < 1) {
-      return { error: 'Invalid or missing version field (must be number >= 1)' };
+    // Accept numeric or string (semver-like) version values
+    if (parsed.version === undefined || parsed.version === null) {
+      return { error: 'Invalid or missing version field (must be number >= 1 or string like "2.0.0")' };
+    }
+
+    if (typeof parsed.version === 'number') {
+      if (parsed.version < 1) {
+        return { error: 'Invalid or missing version field (must be number >= 1 or string like "2.0.0")' };
+      }
+    } else if (typeof parsed.version === 'string') {
+      const trimmed = parsed.version.trim();
+      if (trimmed.length === 0) {
+        return { error: 'Invalid or missing version field (must be number >= 1 or string like "2.0.0")' };
+      }
+      // Validate that the major component is a positive integer
+      const majorPart = trimmed.split('.')[0];
+      const major = Number(majorPart);
+      if (!Number.isFinite(major) || major < 1) {
+        return { error: 'Invalid or missing version field (must be number >= 1 or string like "2.0.0")' };
+      }
+    } else {
+      return { error: 'Invalid or missing version field (must be number >= 1 or string like "2.0.0")' };
     }
 
     // Support both 'annotations' and 'importanceAnnotations' fields
